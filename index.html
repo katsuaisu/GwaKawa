@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Academic Dashboard</title>
+    <title>GWAKawa by Rei</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -207,10 +207,12 @@
 
     <script src="script.js"></script>
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+       
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
+      
         const firebaseConfig = {
             apiKey: "AIzaSyBlbnrJZ5UJy3wjM8Bnxyq0Vs3P27oBDzA",
             authDomain: "gwakawa-98428.firebaseapp.com",
@@ -221,29 +223,42 @@
             measurementId: "G-SDN67JX2DB"
         };
 
+     
         const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
+        const db = getFirestore(app);
 
-        // Make auth available globally
+        
         window.firebaseAuth = auth;
+        window.db = db; 
         window.googleProvider = provider;
+
+        
         window.signInWithEmailAndPassword = signInWithEmailAndPassword;
         window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
         window.signInWithPopup = signInWithPopup;
         window.signOutUser = signOut;
 
-        // Check authentication state
+        
+        window.doc = doc;
+        window.setDoc = setDoc;
+        window.getDoc = getDoc;
+
+        console.log("Firebase initialized. Firestore tools attached to window.");
+
+        // 5. Auth State Listener
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 window.currentUser = user;
                 document.getElementById('bottomNav').style.display = 'flex';
                 const name = user.displayName || user.email.split('@')[0];
-                document.getElementById('userGreeting').textContent = `Hello, ${name}!`;
+                const greeting = document.getElementById('userGreeting');
+                if (greeting) greeting.textContent = `Hello, ${name}!`;
             } else {
                 window.currentUser = null;
-                document.getElementById('bottomNav').style.display = 'none';
+                const bottomNav = document.getElementById('bottomNav');
+                if (bottomNav) bottomNav.style.display = 'none';
             }
         });
     </script>

@@ -12,67 +12,20 @@ const SUBJECT_COLORS = [
 
 const SUBJECT_ICONS = ['⚗', '⚛', '🧬', '∑', '📈', '🌍', '📖', '🇵🇭', '💻', '⚽'];
 
-
 const GRADE_TEMPLATES = {
-    'Chemistry': [
-        { category: 'Quiz / FA', weight: 0.25 },
-        { category: 'LT / SA', weight: 0.35 },
-        { category: 'AA / LA', weight: 0.40 }
-    ],
-    'Physics': [
-        { category: 'Quiz / FA', weight: 0.25 },
-        { category: 'AA', weight: 0.25 },
-        { category: 'LT1', weight: 0.25 },
-        { category: 'LT2', weight: 0.25 }
-    ],
-    'Biology': [
-        { category: 'Final LT', weight: 0.25 },
-        { category: 'LT1, LT2, Quiz / FA', weight: 0.30 },
-        { category: 'LA', weight: 0.25 },
-        { category: 'AA', weight: 0.20 }
-    ],
-    'Math': [
-        { category: 'Quiz / FA', weight: 0.25 },
-        { category: 'SW and HW', weight: 0.05 },
-        { category: 'LT1', weight: 0.25 },
-        { category: 'LT2', weight: 0.25 },
-        { category: 'AA', weight: 0.20 }
-    ],
-    'Statistics': [
-        { category: 'Quiz / FA', weight: 0.20 },
-        { category: 'Mini Tasks', weight: 0.05 },
-        { category: 'LA', weight: 0.25 },
-        { category: 'Project', weight: 0.25 },
-        { category: 'LT', weight: 0.25 }
-    ],
-    'Social Science': [
-        { category: 'Quiz / FA', weight: 0.25 },
-        { category: 'LT', weight: 0.35 },
-        { category: 'AA', weight: 0.40 }
-    ],
-    'English': [
-        { category: 'Quiz / FA', weight: 0.25 },
-        { category: 'LT', weight: 0.35 },
-        { category: 'AA', weight: 0.40 }
-    ],
-    'Filipino': [
-        { category: 'Quiz / FA', weight: 0.25 },
-        { category: 'LT', weight: 0.35 },
-        { category: 'AA', weight: 0.40 }
-    ],
-    'Computer Science': [
-        { category: 'Quiz / FA', weight: 0.25 },
-        { category: 'LT', weight: 0.35 },
-        { category: 'AA', weight: 0.40 }
-    ],
-    'PEHM': [
-        { category: 'Quiz / FA', weight: 0.25 },
-        { category: 'LT', weight: 0.35 },
-        { category: 'AA', weight: 0.40 }
-    ]
+    'Chemistry': [{ category: 'Quiz / FA', weight: 0.25 }, { category: 'LT / SA', weight: 0.35 }, { category: 'AA / LA', weight: 0.40 }],
+    'Physics': [{ category: 'Quiz / FA', weight: 0.25 }, { category: 'AA', weight: 0.25 }, { category: 'LT1', weight: 0.25 }, { category: 'LT2', weight: 0.25 }],
+    'Biology': [{ category: 'Final LT', weight: 0.25 }, { category: 'LT1, LT2, Quiz / FA', weight: 0.30 }, { category: 'LA', weight: 0.25 }, { category: 'AA', weight: 0.20 }],
+    'Math': [{ category: 'Quiz / FA', weight: 0.25 }, { category: 'SW and HW', weight: 0.05 }, { category: 'LT1', weight: 0.25 }, { category: 'LT2', weight: 0.25 }, { category: 'AA', weight: 0.20 }],
+    'Statistics': [{ category: 'Quiz / FA', weight: 0.20 }, { category: 'Mini Tasks', weight: 0.05 }, { category: 'LA', weight: 0.25 }, { category: 'Project', weight: 0.25 }, { category: 'LT', weight: 0.25 }],
+    'Social Science': [{ category: 'Quiz / FA', weight: 0.25 }, { category: 'LT', weight: 0.35 }, { category: 'AA', weight: 0.40 }],
+    'English': [{ category: 'Quiz / FA', weight: 0.25 }, { category: 'LT', weight: 0.35 }, { category: 'AA', weight: 0.40 }],
+    'Filipino': [{ category: 'Quiz / FA', weight: 0.25 }, { category: 'LT', weight: 0.35 }, { category: 'AA', weight: 0.40 }],
+    'Computer Science': [{ category: 'Quiz / FA', weight: 0.25 }, { category: 'LT', weight: 0.35 }, { category: 'AA', weight: 0.40 }],
+    'PEHM': [{ category: 'Quiz / FA', weight: 0.25 }, { category: 'LT', weight: 0.35 }, { category: 'AA', weight: 0.40 }]
 };
 
-
+// --- HELPER FUNCTIONS ---
 function transmute(rawGrade) {
     if (rawGrade <= 1.125) return 1.00;
     if (rawGrade <= 1.375) return 1.25;
@@ -101,16 +54,21 @@ function percentageToGrade(percentage) {
     return 5.00;
 }
 
-// Firestore data sync functions
-window.saveUserData = async function () {
-    if (!window.currentUser) return;
+// --- FIRESTORE SYNC FUNCTIONS ---
+
+
+window.saveUserData = async function (userOverride) {
+    const user = userOverride || window.currentUser;
+    if (!user) return;
 
     try {
         const subjects = JSON.parse(localStorage.getItem('subjects') || '{}');
         const gradeComponents = JSON.parse(localStorage.getItem('gradeComponents') || '{}');
 
-        const userDocRef = window.firestoreDoc(window.firebaseDb, 'users', window.currentUser.uid);
-        await window.firestoreSetDoc(userDocRef, {
+        
+        const userDocRef = window.doc(window.db, 'users', user.uid);
+
+        await window.setDoc(userDocRef, {
             subjects: subjects,
             gradeComponents: gradeComponents,
             lastUpdated: new Date().toISOString()
@@ -122,17 +80,21 @@ window.saveUserData = async function () {
     }
 };
 
-window.loadUserData = async function () {
-    if (!window.currentUser) return;
+window.loadUserData = async function (userOverride) {
+    const user = userOverride || window.currentUser;
+    if (!user) {
+        console.warn("loadUserData called but no user is logged in.");
+        return;
+    }
 
     try {
-        const userDocRef = window.firestoreDoc(window.firebaseDb, 'users', window.currentUser.uid);
-        const docSnap = await window.firestoreGetDoc(userDocRef);
+       
+        const userDocRef = window.doc(window.db, 'users', user.uid);
+        const docSnap = await window.getDoc(userDocRef);
 
         if (docSnap.exists()) {
             const data = docSnap.data();
 
-            // Load data from cloud to localStorage
             if (data.subjects) {
                 localStorage.setItem('subjects', JSON.stringify(data.subjects));
             }
@@ -142,26 +104,22 @@ window.loadUserData = async function () {
 
             console.log('Data loaded from cloud successfully');
 
-            // Refresh the UI
-            if (document.getElementById('gwa').classList.contains('active')) {
-                renderGWAPage();
-            }
-            if (document.getElementById('grade').classList.contains('active')) {
-                renderGradeCalculator();
-            }
+            
+            if (document.getElementById('gwa').classList.contains('active')) renderGWAPage();
+            if (document.getElementById('grade').classList.contains('active')) renderGradeCalculator();
         } else {
-            // No cloud data, initialize with defaults
+           
             initializeData();
-            await saveUserData();
+            await saveUserData(user);
         }
     } catch (error) {
         console.error('Error loading data:', error);
-        // Fall back to local data
         initializeData();
     }
 };
 
-// Authentication functions
+
+
 window.loginWithEmail = async function () {
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
@@ -172,10 +130,16 @@ window.loginWithEmail = async function () {
     }
 
     try {
-        await window.signInWithEmailAndPassword(window.firebaseAuth, email, password);
-        await loadUserData();
+      
+        const userCredential = await window.signInWithEmailAndPassword(window.firebaseAuth, email, password);
+
+       
+        await loadUserData(userCredential.user);
+
+      
         navigateTo('dashboard');
     } catch (error) {
+        console.error(error);
         alert('Login failed: ' + error.message);
     }
 };
@@ -197,11 +161,15 @@ window.signupWithEmail = async function () {
 
     try {
         const userCredential = await window.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
-        await userCredential.user.updateProfile({ displayName: name });
 
-        // Initialize and save data for new user
+        
+        if (userCredential.user.updateProfile) {
+            await userCredential.user.updateProfile({ displayName: name });
+        }
+
         initializeData();
-        await saveUserData();
+        
+        await saveUserData(userCredential.user);
 
         navigateTo('dashboard');
     } catch (error) {
@@ -211,8 +179,8 @@ window.signupWithEmail = async function () {
 
 window.loginWithGoogle = async function () {
     try {
-        await window.signInWithPopup(window.firebaseAuth, window.googleProvider);
-        await loadUserData();
+        const result = await window.signInWithPopup(window.firebaseAuth, window.googleProvider);
+        await loadUserData(result.user);
         navigateTo('dashboard');
     } catch (error) {
         alert('Google login failed: ' + error.message);
@@ -222,34 +190,33 @@ window.loginWithGoogle = async function () {
 window.logout = async function () {
     try {
         await window.signOutUser(window.firebaseAuth);
-        localStorage.clear(); // Clear local data on logout
+        localStorage.clear();
+        window.currentUser = null;
         navigateTo('login');
     } catch (error) {
         alert('Logout failed: ' + error.message);
     }
 };
 
-window.showSignup = function () {
-    navigateTo('signup');
-};
 
-window.showLogin = function () {
-    navigateTo('login');
-};
+window.showSignup = function () { navigateTo('signup'); };
+window.showLogin = function () { navigateTo('login'); };
 
 document.addEventListener('DOMContentLoaded', () => {
-    initializeData();
+    initializeData(); 
     updateDashDate();
 
-    // Wait for auth to initialize
+   
     setTimeout(() => {
+        
         if (!window.currentUser) {
             navigateTo('login');
         } else {
-            renderGWAPage();
-            renderGradeCalculator();
+            
+            loadUserData(window.currentUser);
+            navigateTo('dashboard');
         }
-    }, 500);
+    }, 800);
 });
 
 function initializeData() {
@@ -283,7 +250,8 @@ function navigateTo(page) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
-    document.getElementById(page).classList.add('active');
+    const target = document.getElementById(page);
+    if (target) target.classList.add('active');
 
     const navItems = document.querySelectorAll('.nav-item');
     if (page === 'dashboard') navItems[0]?.classList.add('active');
@@ -293,6 +261,7 @@ function navigateTo(page) {
     if (page === 'gwa') renderGWAPage();
     if (page === 'grade') renderGradeCalculator();
 }
+
 
 function renderGWAPage() {
     const subjects = JSON.parse(localStorage.getItem('subjects'));
@@ -347,14 +316,12 @@ window.updateSubjectGrade = async function (subject, field, value) {
     const prev = subjects[subject].previous;
     const tent = subjects[subject].tentative;
 
+    // Calculation Logic
     const rawFinal = (tent * 2 + prev) / 3;
     subjects[subject].final = transmute(rawFinal);
 
     localStorage.setItem('subjects', JSON.stringify(subjects));
-
-    // Save to cloud
-    await saveUserData();
-
+    await saveUserData(); // Sync to cloud
     renderGWAPage();
 };
 
@@ -367,7 +334,8 @@ function updateGWARing() {
 
     const gwaEl = document.getElementById('gwaNumber');
     if (gwaEl) {
-        gwaEl.textContent = gwa.toFixed(2);
+        const cutGwa = Math.floor(gwa * 100) / 100;
+        gwaEl.textContent = cutGwa.toFixed(2);
     }
 
     const svg = document.getElementById('gwaRing');
@@ -375,11 +343,7 @@ function updateGWARing() {
 
     svg.innerHTML = '';
 
-    const centerX = 140;
-    const centerY = 140;
-    const radius = 110;
-    const strokeWidth = 20;
-
+    const centerX = 140, centerY = 140, radius = 110, strokeWidth = 20;
     const segmentAngle = 360 / grades.length;
     let currentAngle = -90;
 
@@ -400,50 +364,27 @@ function updateGWARing() {
         path.setAttribute('stroke-width', strokeWidth);
         path.setAttribute('fill', 'none');
         path.setAttribute('stroke-linecap', 'round');
-
         svg.appendChild(path);
-
-        currentAngle += segmentAngle;
-    });
-
-    const iconsContainer = document.getElementById('ringIcons');
-    if (!iconsContainer) return;
-
-    iconsContainer.innerHTML = '';
-
-    const iconRadius = 140;
-    currentAngle = -90;
-
-    grades.forEach((grade, index) => {
-        const midAngle = (currentAngle + segmentAngle / 2) * Math.PI / 180;
-
-        const x = 140 + iconRadius * Math.cos(midAngle);
-        const y = 140 + iconRadius * Math.sin(midAngle);
-
-        const iconDiv = document.createElement('div');
-        iconDiv.className = 'ring-icon';
-        iconDiv.style.left = x + 'px';
-        iconDiv.style.top = y + 'px';
-        iconDiv.style.transform = 'translate(-50%, -50%)';
-        iconDiv.style.borderColor = SUBJECT_COLORS[index];
-        iconDiv.innerHTML = `<span class="wingding">${SUBJECT_ICONS[index]}</span>`;
-        iconsContainer.appendChild(iconDiv);
 
         currentAngle += segmentAngle;
     });
 }
 
+// --- GRADE CALCULATOR LOGIC ---
 function renderGradeCalculator() {
     const select = document.getElementById('gradeSubjectSelect');
     if (!select) return;
 
-    select.innerHTML = '<option value="">Choose a subject...</option>';
-    SUBJECTS.forEach(subject => {
-        const option = document.createElement('option');
-        option.value = subject;
-        option.textContent = subject;
-        select.appendChild(option);
-    });
+    // Only repopulate if empty
+    if (select.children.length <= 1) {
+        select.innerHTML = '<option value="">Choose a subject...</option>';
+        SUBJECTS.forEach(subject => {
+            const option = document.createElement('option');
+            option.value = subject;
+            option.textContent = subject;
+            select.appendChild(option);
+        });
+    }
 
     renderConversionTable();
     updatePercentageRing(0);
@@ -463,12 +404,8 @@ window.loadGradeComponents = function () {
     const components = JSON.parse(localStorage.getItem('gradeComponents'));
     if (!components[subject]) {
         components[subject] = {};
-        const template = GRADE_TEMPLATES[subject];
-        template.forEach(cat => {
-            components[subject][cat.category] = {
-                weight: cat.weight,
-                items: []
-            };
+        GRADE_TEMPLATES[subject].forEach(cat => {
+            components[subject][cat.category] = { weight: cat.weight, items: [] };
         });
         localStorage.setItem('gradeComponents', JSON.stringify(components));
     }
@@ -480,16 +417,9 @@ window.addItemToCategory = async function (category) {
     const subject = document.getElementById('gradeSubjectSelect').value;
     const components = JSON.parse(localStorage.getItem('gradeComponents'));
 
-    components[subject][category].items.push({
-        score: 0,
-        total: 100
-    });
-
+    components[subject][category].items.push({ score: 0, total: 100 });
     localStorage.setItem('gradeComponents', JSON.stringify(components));
-
-    // Save to cloud
     await saveUserData();
-
     renderComponents();
 };
 
@@ -501,34 +431,24 @@ function renderComponents() {
 
     list.innerHTML = '';
 
-    const template = GRADE_TEMPLATES[subject];
-
-    template.forEach(catTemplate => {
+    GRADE_TEMPLATES[subject].forEach(catTemplate => {
         const category = catTemplate.category;
         const categoryData = components[subject][category];
 
         const section = document.createElement('div');
         section.className = 'category-section';
 
-        const header = document.createElement('div');
-        header.className = 'category-header';
-        header.innerHTML = `
-            <div class="category-title">${category}</div>
-            <div class="category-weight">${(categoryData.weight * 100).toFixed(0)}%</div>
+        section.innerHTML = `
+            <div class="category-header">
+                <div class="category-title">${category}</div>
+                <div class="category-weight">${(categoryData.weight * 100).toFixed(0)}%</div>
+            </div>
+            <button class="category-btn-add" onclick="addItemToCategory('${category}')">+ Add ${category}</button>
         `;
-        section.appendChild(header);
-
-        const addBtn = document.createElement('button');
-        addBtn.className = 'category-btn-add';
-        addBtn.textContent = `+ Add ${category}`;
-        addBtn.onclick = () => addItemToCategory(category);
-        section.appendChild(addBtn);
 
         if (categoryData.items.length === 0) {
             const empty = document.createElement('p');
-            empty.style.color = '#7f8c8d';
-            empty.style.fontSize = '16px';
-            empty.style.marginTop = '10px';
+            empty.className = 'empty-msg';
             empty.textContent = 'No items added yet';
             section.appendChild(empty);
         } else {
@@ -547,7 +467,6 @@ function renderComponents() {
                 section.appendChild(itemDiv);
             });
         }
-
         list.appendChild(section);
     });
 
@@ -557,27 +476,18 @@ function renderComponents() {
 window.updateItem = async function (category, index, field, value) {
     const subject = document.getElementById('gradeSubjectSelect').value;
     const components = JSON.parse(localStorage.getItem('gradeComponents'));
-
     components[subject][category].items[index][field] = parseFloat(value) || 0;
-
     localStorage.setItem('gradeComponents', JSON.stringify(components));
-
-    // Save to cloud
     await saveUserData();
-
     calculateGrade();
 };
 
 window.deleteItem = async function (category, index) {
     const subject = document.getElementById('gradeSubjectSelect').value;
     const components = JSON.parse(localStorage.getItem('gradeComponents'));
-
     components[subject][category].items.splice(index, 1);
     localStorage.setItem('gradeComponents', JSON.stringify(components));
-
-    // Save to cloud
     await saveUserData();
-
     renderComponents();
 };
 
@@ -590,17 +500,13 @@ function calculateGrade() {
 
     Object.keys(components[subject]).forEach(category => {
         const categoryData = components[subject][category];
-
         if (categoryData.items.length > 0) {
             hasItems = true;
-            let categoryScore = 0;
-            let categoryTotal = 0;
-
+            let categoryScore = 0, categoryTotal = 0;
             categoryData.items.forEach(item => {
                 categoryScore += item.score;
                 categoryTotal += item.total;
             });
-
             const categoryPercentage = categoryTotal > 0 ? (categoryScore / categoryTotal) * 100 : 0;
             weightedSum += categoryPercentage * categoryData.weight;
         }
@@ -617,33 +523,24 @@ function calculateGrade() {
         return;
     }
 
-    const finalPercentage = weightedSum;
-    const grade = percentageToGrade(finalPercentage);
-
-    if (percentNumEl) percentNumEl.innerHTML = Math.round(finalPercentage) + '<span>%</span>';
+    const grade = percentageToGrade(weightedSum);
+    if (percentNumEl) percentNumEl.innerHTML = Math.round(weightedSum) + '<span>%</span>';
     if (gradeNumEl) gradeNumEl.textContent = 'Grade: ' + grade.toFixed(2);
-    updatePercentageRing(finalPercentage);
-    highlightConversionRow(finalPercentage);
+    updatePercentageRing(weightedSum);
+    highlightConversionRow(weightedSum);
 }
 
 function updatePercentageRing(percentage) {
     const svg = document.getElementById('percentageRing');
     if (!svg) return;
-
     svg.innerHTML = '';
 
-    const centerX = 160;
-    const centerY = 160;
-    const radius = 130;
-    const strokeWidth = 24;
+    const centerX = 160, centerY = 160, radius = 130, strokeWidth = 24;
 
     const bgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    bgCircle.setAttribute('cx', centerX);
-    bgCircle.setAttribute('cy', centerY);
-    bgCircle.setAttribute('r', radius);
-    bgCircle.setAttribute('fill', 'none');
-    bgCircle.setAttribute('stroke', '#ECF0F1');
-    bgCircle.setAttribute('stroke-width', strokeWidth);
+    bgCircle.setAttribute('cx', centerX); bgCircle.setAttribute('cy', centerY);
+    bgCircle.setAttribute('r', radius); bgCircle.setAttribute('fill', 'none');
+    bgCircle.setAttribute('stroke', '#ECF0F1'); bgCircle.setAttribute('stroke-width', strokeWidth);
     svg.appendChild(bgCircle);
 
     const progress = Math.min(percentage / 100, 1);
@@ -651,12 +548,9 @@ function updatePercentageRing(percentage) {
     const dashOffset = circumference * (1 - progress);
 
     const progressCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    progressCircle.setAttribute('cx', centerX);
-    progressCircle.setAttribute('cy', centerY);
-    progressCircle.setAttribute('r', radius);
-    progressCircle.setAttribute('fill', 'none');
-    progressCircle.setAttribute('stroke', '#2C3E50');
-    progressCircle.setAttribute('stroke-width', strokeWidth);
+    progressCircle.setAttribute('cx', centerX); progressCircle.setAttribute('cy', centerY);
+    progressCircle.setAttribute('r', radius); progressCircle.setAttribute('fill', 'none');
+    progressCircle.setAttribute('stroke', '#2C3E50'); progressCircle.setAttribute('stroke-width', strokeWidth);
     progressCircle.setAttribute('stroke-dasharray', circumference);
     progressCircle.setAttribute('stroke-dashoffset', dashOffset);
     progressCircle.setAttribute('stroke-linecap', 'round');
@@ -669,16 +563,11 @@ function renderConversionTable() {
     if (!table) return;
 
     const ranges = [
-        { range: '96+', grade: '1.00' },
-        { range: '90–95', grade: '1.25' },
-        { range: '84–89', grade: '1.50' },
-        { range: '78–83', grade: '1.75' },
-        { range: '72–77', grade: '2.00' },
-        { range: '66–71', grade: '2.25' },
-        { range: '60–65', grade: '2.50' },
-        { range: '55–59', grade: '2.75' },
-        { range: '50–54', grade: '3.00' },
-        { range: '40–49', grade: '4.00' },
+        { range: '96+', grade: '1.00' }, { range: '90–95', grade: '1.25' },
+        { range: '84–89', grade: '1.50' }, { range: '78–83', grade: '1.75' },
+        { range: '72–77', grade: '2.00' }, { range: '66–71', grade: '2.25' },
+        { range: '60–65', grade: '2.50' }, { range: '55–59', grade: '2.75' },
+        { range: '50–54', grade: '3.00' }, { range: '40–49', grade: '4.00' },
         { range: 'Below 40', grade: '5.00' }
     ];
 
