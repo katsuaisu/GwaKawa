@@ -135,7 +135,7 @@ h6,
     }
 }
 
-
+/* Login & Signup Styles */
 .login-container {
     max-width: 400px;
     margin: 60px auto;
@@ -305,7 +305,7 @@ h6,
     text-decoration: underline;
 }
 
-
+/* Dashboard Page */
 .profile-header {
     display: flex;
     align-items: center;
@@ -451,7 +451,7 @@ h6,
     opacity: 0.2;
 }
 
-
+/* GWA Calculator */
 .stats-header {
     background: white;
     border: 3px solid var(--dark-gray);
@@ -605,7 +605,7 @@ h6,
     outline: none;
 }
 
-
+/* Grade Calculator */
 .percentage-display-card {
     background: white;
     border: 3px solid var(--dark-gray);
@@ -825,7 +825,7 @@ h6,
     font-weight: 600;
 }
 
-
+/* Bottom Navigation */
 .bottom-nav {
     position: fixed;
     bottom: 0;

@@ -10,7 +10,7 @@ const SUBJECT_COLORS = [
     '#E76F51', '#F4A261', '#E9C46A', '#264653', '#8AB17D'
 ];
 
-const SUBJECT_ICONS = ['⚗', '⚛', '🧬', '∑', '📈', '🌍', '📖', '⭐', '💻', '⚽'];
+const SUBJECT_ICONS = ['⚗', '⚛', '🧬', '∑', '📈', '🌍', '📖', '🇵🇭', '💻', '⚽'];
 
 
 const GRADE_TEMPLATES = {
@@ -74,7 +74,6 @@ const GRADE_TEMPLATES = {
 
 
 function transmute(rawGrade) {
-
     if (rawGrade <= 1.125) return 1.00;
     if (rawGrade <= 1.375) return 1.25;
     if (rawGrade <= 1.625) return 1.50;
@@ -102,7 +101,67 @@ function percentageToGrade(percentage) {
     return 5.00;
 }
 
+// Firestore data sync functions
+window.saveUserData = async function () {
+    if (!window.currentUser) return;
 
+    try {
+        const subjects = JSON.parse(localStorage.getItem('subjects') || '{}');
+        const gradeComponents = JSON.parse(localStorage.getItem('gradeComponents') || '{}');
+
+        const userDocRef = window.firestoreDoc(window.firebaseDb, 'users', window.currentUser.uid);
+        await window.firestoreSetDoc(userDocRef, {
+            subjects: subjects,
+            gradeComponents: gradeComponents,
+            lastUpdated: new Date().toISOString()
+        }, { merge: true });
+
+        console.log('Data saved to cloud successfully');
+    } catch (error) {
+        console.error('Error saving data:', error);
+    }
+};
+
+window.loadUserData = async function () {
+    if (!window.currentUser) return;
+
+    try {
+        const userDocRef = window.firestoreDoc(window.firebaseDb, 'users', window.currentUser.uid);
+        const docSnap = await window.firestoreGetDoc(userDocRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+
+            // Load data from cloud to localStorage
+            if (data.subjects) {
+                localStorage.setItem('subjects', JSON.stringify(data.subjects));
+            }
+            if (data.gradeComponents) {
+                localStorage.setItem('gradeComponents', JSON.stringify(data.gradeComponents));
+            }
+
+            console.log('Data loaded from cloud successfully');
+
+            // Refresh the UI
+            if (document.getElementById('gwa').classList.contains('active')) {
+                renderGWAPage();
+            }
+            if (document.getElementById('grade').classList.contains('active')) {
+                renderGradeCalculator();
+            }
+        } else {
+            // No cloud data, initialize with defaults
+            initializeData();
+            await saveUserData();
+        }
+    } catch (error) {
+        console.error('Error loading data:', error);
+        // Fall back to local data
+        initializeData();
+    }
+};
+
+// Authentication functions
 window.loginWithEmail = async function () {
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
@@ -114,6 +173,7 @@ window.loginWithEmail = async function () {
 
     try {
         await window.signInWithEmailAndPassword(window.firebaseAuth, email, password);
+        await loadUserData();
         navigateTo('dashboard');
     } catch (error) {
         alert('Login failed: ' + error.message);
@@ -137,8 +197,12 @@ window.signupWithEmail = async function () {
 
     try {
         const userCredential = await window.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
-
         await userCredential.user.updateProfile({ displayName: name });
+
+        // Initialize and save data for new user
+        initializeData();
+        await saveUserData();
+
         navigateTo('dashboard');
     } catch (error) {
         alert('Signup failed: ' + error.message);
@@ -148,6 +212,7 @@ window.signupWithEmail = async function () {
 window.loginWithGoogle = async function () {
     try {
         await window.signInWithPopup(window.firebaseAuth, window.googleProvider);
+        await loadUserData();
         navigateTo('dashboard');
     } catch (error) {
         alert('Google login failed: ' + error.message);
@@ -157,6 +222,7 @@ window.loginWithGoogle = async function () {
 window.logout = async function () {
     try {
         await window.signOutUser(window.firebaseAuth);
+        localStorage.clear(); // Clear local data on logout
         navigateTo('login');
     } catch (error) {
         alert('Logout failed: ' + error.message);
@@ -175,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeData();
     updateDashDate();
 
-
+    // Wait for auth to initialize
     setTimeout(() => {
         if (!window.currentUser) {
             navigateTo('login');
@@ -274,20 +340,21 @@ function renderGWAPage() {
     updateGWARing();
 }
 
-window.updateSubjectGrade = function (subject, field, value) {
+window.updateSubjectGrade = async function (subject, field, value) {
     const subjects = JSON.parse(localStorage.getItem('subjects'));
     subjects[subject][field] = parseFloat(value);
 
     const prev = subjects[subject].previous;
     const tent = subjects[subject].tentative;
 
-
     const rawFinal = (tent * 2 + prev) / 3;
-
-
     subjects[subject].final = transmute(rawFinal);
 
     localStorage.setItem('subjects', JSON.stringify(subjects));
+
+    // Save to cloud
+    await saveUserData();
+
     renderGWAPage();
 };
 
@@ -295,14 +362,12 @@ function updateGWARing() {
     const subjects = JSON.parse(localStorage.getItem('subjects'));
     const grades = SUBJECTS.map(s => subjects[s].final);
 
-
     const totalGrade = grades.reduce((sum, grade) => sum + grade, 0);
     const gwa = totalGrade / grades.length;
 
     const gwaEl = document.getElementById('gwaNumber');
     if (gwaEl) {
-        const cutGwa = Math.floor(gwa * 100) / 100;
-        gwaEl.textContent = cutGwa.toFixed(2);
+        gwaEl.textContent = gwa.toFixed(2);
     }
 
     const svg = document.getElementById('gwaRing');
@@ -314,7 +379,6 @@ function updateGWARing() {
     const centerY = 140;
     const radius = 110;
     const strokeWidth = 20;
-
 
     const segmentAngle = 360 / grades.length;
     let currentAngle = -90;
@@ -342,7 +406,6 @@ function updateGWARing() {
         currentAngle += segmentAngle;
     });
 
-    // Add icons
     const iconsContainer = document.getElementById('ringIcons');
     if (!iconsContainer) return;
 
@@ -413,7 +476,7 @@ window.loadGradeComponents = function () {
     renderComponents();
 };
 
-window.addItemToCategory = function (category) {
+window.addItemToCategory = async function (category) {
     const subject = document.getElementById('gradeSubjectSelect').value;
     const components = JSON.parse(localStorage.getItem('gradeComponents'));
 
@@ -423,6 +486,10 @@ window.addItemToCategory = function (category) {
     });
 
     localStorage.setItem('gradeComponents', JSON.stringify(components));
+
+    // Save to cloud
+    await saveUserData();
+
     renderComponents();
 };
 
@@ -451,7 +518,6 @@ function renderComponents() {
         `;
         section.appendChild(header);
 
-        // Add button
         const addBtn = document.createElement('button');
         addBtn.className = 'category-btn-add';
         addBtn.textContent = `+ Add ${category}`;
@@ -488,22 +554,30 @@ function renderComponents() {
     calculateGrade();
 }
 
-window.updateItem = function (category, index, field, value) {
+window.updateItem = async function (category, index, field, value) {
     const subject = document.getElementById('gradeSubjectSelect').value;
     const components = JSON.parse(localStorage.getItem('gradeComponents'));
 
     components[subject][category].items[index][field] = parseFloat(value) || 0;
 
     localStorage.setItem('gradeComponents', JSON.stringify(components));
+
+    // Save to cloud
+    await saveUserData();
+
     calculateGrade();
 };
 
-window.deleteItem = function (category, index) {
+window.deleteItem = async function (category, index) {
     const subject = document.getElementById('gradeSubjectSelect').value;
     const components = JSON.parse(localStorage.getItem('gradeComponents'));
 
     components[subject][category].items.splice(index, 1);
     localStorage.setItem('gradeComponents', JSON.stringify(components));
+
+    // Save to cloud
+    await saveUserData();
+
     renderComponents();
 };
 
