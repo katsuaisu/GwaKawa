@@ -10,9 +10,9 @@ const SUBJECT_COLORS = [
     '#E76F51', '#F4A261', '#E9C46A', '#264653', '#8AB17D'
 ];
 
-const SUBJECT_ICONS = ['⚗', '⚛', '🧬', '∑', '📈', '🌍', '📝', '🇵🇭', '💻', '⚽'];
+const SUBJECT_ICONS = ['⚗', '⚛', '🧬', '∑', '📈', '🌍', '📖', '⭐', '💻', '⚽'];
 
-// Grade component templates for each subject
+
 const GRADE_TEMPLATES = {
     'Chemistry': [
         { category: 'Quiz / FA', weight: 0.25 },
@@ -72,19 +72,19 @@ const GRADE_TEMPLATES = {
     ]
 };
 
-// Transmutation function
+
 function transmute(rawGrade) {
-    if (rawGrade >= 1.000 && rawGrade <= 1.125) return 1.00;
-    if (rawGrade >= 1.126 && rawGrade <= 1.375) return 1.25;
-    if (rawGrade >= 1.376 && rawGrade <= 1.625) return 1.50;
-    if (rawGrade >= 1.626 && rawGrade <= 1.875) return 1.75;
-    if (rawGrade >= 1.876 && rawGrade <= 2.125) return 2.00;
-    if (rawGrade >= 2.126 && rawGrade <= 2.375) return 2.25;
-    if (rawGrade >= 2.376 && rawGrade <= 2.625) return 2.50;
-    if (rawGrade >= 2.626 && rawGrade <= 2.875) return 2.75;
-    if (rawGrade >= 2.876 && rawGrade <= 3.500) return 3.00;
-    if (rawGrade >= 3.501 && rawGrade <= 4.500) return 4.00;
-    if (rawGrade >= 4.501 && rawGrade <= 5.000) return 5.00;
+
+    if (rawGrade <= 1.125) return 1.00;
+    if (rawGrade <= 1.375) return 1.25;
+    if (rawGrade <= 1.625) return 1.50;
+    if (rawGrade <= 1.875) return 1.75;
+    if (rawGrade <= 2.125) return 2.00;
+    if (rawGrade <= 2.375) return 2.25;
+    if (rawGrade <= 2.625) return 2.50;
+    if (rawGrade <= 2.875) return 2.75;
+    if (rawGrade <= 3.500) return 3.00;
+    if (rawGrade <= 4.500) return 4.00;
     return 5.00;
 }
 
@@ -102,11 +102,88 @@ function percentageToGrade(percentage) {
     return 5.00;
 }
 
+
+window.loginWithEmail = async function () {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+
+    if (!email || !password) {
+        alert('Please enter both email and password');
+        return;
+    }
+
+    try {
+        await window.signInWithEmailAndPassword(window.firebaseAuth, email, password);
+        navigateTo('dashboard');
+    } catch (error) {
+        alert('Login failed: ' + error.message);
+    }
+};
+
+window.signupWithEmail = async function () {
+    const name = document.getElementById('signupName').value;
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPassword').value;
+
+    if (!name || !email || !password) {
+        alert('Please fill in all fields');
+        return;
+    }
+
+    if (password.length < 6) {
+        alert('Password must be at least 6 characters');
+        return;
+    }
+
+    try {
+        const userCredential = await window.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
+
+        await userCredential.user.updateProfile({ displayName: name });
+        navigateTo('dashboard');
+    } catch (error) {
+        alert('Signup failed: ' + error.message);
+    }
+};
+
+window.loginWithGoogle = async function () {
+    try {
+        await window.signInWithPopup(window.firebaseAuth, window.googleProvider);
+        navigateTo('dashboard');
+    } catch (error) {
+        alert('Google login failed: ' + error.message);
+    }
+};
+
+window.logout = async function () {
+    try {
+        await window.signOutUser(window.firebaseAuth);
+        navigateTo('login');
+    } catch (error) {
+        alert('Logout failed: ' + error.message);
+    }
+};
+
+window.showSignup = function () {
+    navigateTo('signup');
+};
+
+window.showLogin = function () {
+    navigateTo('login');
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     initializeData();
     updateDashDate();
-    renderGWAPage();
-    renderGradeCalculator();
+
+
+    setTimeout(() => {
+        if (!window.currentUser) {
+            navigateTo('login');
+        } else {
+            renderGWAPage();
+            renderGradeCalculator();
+        }
+    }, 500);
 });
 
 function initializeData() {
@@ -130,7 +207,10 @@ function initializeData() {
 function updateDashDate() {
     const now = new Date();
     const options = { day: 'numeric', month: 'short' };
-    document.getElementById('dashDate').textContent = 'Today ' + now.toLocaleDateString('en-US', options);
+    const dateEl = document.getElementById('dashDate');
+    if (dateEl) {
+        dateEl.textContent = 'Today ' + now.toLocaleDateString('en-US', options);
+    }
 }
 
 function navigateTo(page) {
@@ -140,9 +220,9 @@ function navigateTo(page) {
     document.getElementById(page).classList.add('active');
 
     const navItems = document.querySelectorAll('.nav-item');
-    if (page === 'dashboard') navItems[0].classList.add('active');
-    if (page === 'gwa') navItems[1].classList.add('active');
-    if (page === 'grade') navItems[2].classList.add('active');
+    if (page === 'dashboard') navItems[0]?.classList.add('active');
+    if (page === 'gwa') navItems[1]?.classList.add('active');
+    if (page === 'grade') navItems[2]?.classList.add('active');
 
     if (page === 'gwa') renderGWAPage();
     if (page === 'grade') renderGradeCalculator();
@@ -151,6 +231,8 @@ function navigateTo(page) {
 function renderGWAPage() {
     const subjects = JSON.parse(localStorage.getItem('subjects'));
     const container = document.getElementById('subjectsList');
+    if (!container) return;
+
     container.innerHTML = '';
 
     SUBJECTS.forEach((subject, index) => {
@@ -192,28 +274,40 @@ function renderGWAPage() {
     updateGWARing();
 }
 
-function updateSubjectGrade(subject, field, value) {
+window.updateSubjectGrade = function (subject, field, value) {
     const subjects = JSON.parse(localStorage.getItem('subjects'));
     subjects[subject][field] = parseFloat(value);
 
     const prev = subjects[subject].previous;
     const tent = subjects[subject].tentative;
+
+
     const rawFinal = (tent * 2 + prev) / 3;
+
+
     subjects[subject].final = transmute(rawFinal);
 
     localStorage.setItem('subjects', JSON.stringify(subjects));
     renderGWAPage();
-}
+};
 
 function updateGWARing() {
     const subjects = JSON.parse(localStorage.getItem('subjects'));
     const grades = SUBJECTS.map(s => subjects[s].final);
 
-    // Calculate simple average GWA
-    const gwa = grades.reduce((a, b) => a + b, 0) / grades.length;
-    document.getElementById('gwaNumber').textContent = gwa.toFixed(2);
+
+    const totalGrade = grades.reduce((sum, grade) => sum + grade, 0);
+    const gwa = totalGrade / grades.length;
+
+    const gwaEl = document.getElementById('gwaNumber');
+    if (gwaEl) {
+        const cutGwa = Math.floor(gwa * 100) / 100;
+        gwaEl.textContent = cutGwa.toFixed(2);
+    }
 
     const svg = document.getElementById('gwaRing');
+    if (!svg) return;
+
     svg.innerHTML = '';
 
     const centerX = 140;
@@ -221,7 +315,7 @@ function updateGWARing() {
     const radius = 110;
     const strokeWidth = 20;
 
-    // Equal segments for each subject
+
     const segmentAngle = 360 / grades.length;
     let currentAngle = -90;
 
@@ -250,6 +344,8 @@ function updateGWARing() {
 
     // Add icons
     const iconsContainer = document.getElementById('ringIcons');
+    if (!iconsContainer) return;
+
     iconsContainer.innerHTML = '';
 
     const iconRadius = 140;
@@ -276,6 +372,8 @@ function updateGWARing() {
 
 function renderGradeCalculator() {
     const select = document.getElementById('gradeSubjectSelect');
+    if (!select) return;
+
     select.innerHTML = '<option value="">Choose a subject...</option>';
     SUBJECTS.forEach(subject => {
         const option = document.createElement('option');
@@ -288,7 +386,7 @@ function renderGradeCalculator() {
     updatePercentageRing(0);
 }
 
-function loadGradeComponents() {
+window.loadGradeComponents = function () {
     const subject = document.getElementById('gradeSubjectSelect').value;
     const container = document.getElementById('gradeComponentsContainer');
 
@@ -313,9 +411,9 @@ function loadGradeComponents() {
     }
 
     renderComponents();
-}
+};
 
-function addItemToCategory(category) {
+window.addItemToCategory = function (category) {
     const subject = document.getElementById('gradeSubjectSelect').value;
     const components = JSON.parse(localStorage.getItem('gradeComponents'));
 
@@ -326,12 +424,13 @@ function addItemToCategory(category) {
 
     localStorage.setItem('gradeComponents', JSON.stringify(components));
     renderComponents();
-}
+};
 
 function renderComponents() {
     const subject = document.getElementById('gradeSubjectSelect').value;
     const components = JSON.parse(localStorage.getItem('gradeComponents'));
     const list = document.getElementById('componentsList');
+    if (!list) return;
 
     list.innerHTML = '';
 
@@ -362,8 +461,8 @@ function renderComponents() {
         if (categoryData.items.length === 0) {
             const empty = document.createElement('p');
             empty.style.color = '#7f8c8d';
-            empty.style.fontSize = '13px';
-            empty.style.marginTop = '8px';
+            empty.style.fontSize = '16px';
+            empty.style.marginTop = '10px';
             empty.textContent = 'No items added yet';
             section.appendChild(empty);
         } else {
@@ -389,7 +488,7 @@ function renderComponents() {
     calculateGrade();
 }
 
-function updateItem(category, index, field, value) {
+window.updateItem = function (category, index, field, value) {
     const subject = document.getElementById('gradeSubjectSelect').value;
     const components = JSON.parse(localStorage.getItem('gradeComponents'));
 
@@ -397,16 +496,16 @@ function updateItem(category, index, field, value) {
 
     localStorage.setItem('gradeComponents', JSON.stringify(components));
     calculateGrade();
-}
+};
 
-function deleteItem(category, index) {
+window.deleteItem = function (category, index) {
     const subject = document.getElementById('gradeSubjectSelect').value;
     const components = JSON.parse(localStorage.getItem('gradeComponents'));
 
     components[subject][category].items.splice(index, 1);
     localStorage.setItem('gradeComponents', JSON.stringify(components));
     renderComponents();
-}
+};
 
 function calculateGrade() {
     const subject = document.getElementById('gradeSubjectSelect').value;
@@ -433,9 +532,12 @@ function calculateGrade() {
         }
     });
 
+    const percentNumEl = document.getElementById('percentageNum');
+    const gradeNumEl = document.getElementById('gradeNum');
+
     if (!hasItems) {
-        document.getElementById('percentageNum').innerHTML = '0<span>%</span>';
-        document.getElementById('gradeNum').textContent = 'Grade: -';
+        if (percentNumEl) percentNumEl.innerHTML = '0<span>%</span>';
+        if (gradeNumEl) gradeNumEl.textContent = 'Grade: -';
         updatePercentageRing(0);
         highlightConversionRow(-1);
         return;
@@ -444,14 +546,16 @@ function calculateGrade() {
     const finalPercentage = weightedSum;
     const grade = percentageToGrade(finalPercentage);
 
-    document.getElementById('percentageNum').innerHTML = Math.round(finalPercentage) + '<span>%</span>';
-    document.getElementById('gradeNum').textContent = 'Grade: ' + grade.toFixed(2);
+    if (percentNumEl) percentNumEl.innerHTML = Math.round(finalPercentage) + '<span>%</span>';
+    if (gradeNumEl) gradeNumEl.textContent = 'Grade: ' + grade.toFixed(2);
     updatePercentageRing(finalPercentage);
     highlightConversionRow(finalPercentage);
 }
 
 function updatePercentageRing(percentage) {
     const svg = document.getElementById('percentageRing');
+    if (!svg) return;
+
     svg.innerHTML = '';
 
     const centerX = 160;
@@ -488,6 +592,8 @@ function updatePercentageRing(percentage) {
 
 function renderConversionTable() {
     const table = document.getElementById('conversionTable');
+    if (!table) return;
+
     const ranges = [
         { range: '96+', grade: '1.00' },
         { range: '90–95', grade: '1.25' },
@@ -529,6 +635,7 @@ function highlightConversionRow(percentage) {
     else if (percentage >= 0) rowIndex = 10;
 
     if (rowIndex >= 0) {
-        document.getElementById(`conv-row-${rowIndex}`).classList.add('active');
+        const row = document.getElementById(`conv-row-${rowIndex}`);
+        if (row) row.classList.add('active');
     }
 }

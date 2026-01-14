@@ -12,20 +12,96 @@
     <div class="bg-decoration"></div>
 
     <div class="container">
-        <!-- Dashboard Page -->
-        <div id="dashboard" class="page active">
+       
+        <div id="login" class="page active">
+            <div class="login-container">
+                <div class="login-header">
+                    <div class="login-icon">
+                        <span class="wingding">📚</span>
+                    </div>
+                    <h1 class="login-title">Welcome Back!</h1>
+                    <p class="login-subtitle">Sign in to track your academic progress</p>
+                </div>
+
+                <div class="login-form">
+                    <div class="input-group">
+                        <label>Email Address</label>
+                        <input type="email" id="loginEmail" placeholder="your.email@example.com">
+                    </div>
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" placeholder="Enter your password">
+                    </div>
+                    <button class="btn-primary" onclick="loginWithEmail()">Sign In</button>
+
+                    <div class="divider">
+                        <span>or continue with</span>
+                    </div>
+
+                    <button class="btn-google" onclick="loginWithGoogle()">
+                        <span class="google-icon">G</span>
+                        Sign in with Google
+                    </button>
+
+                    <p class="login-footer">Don't have an account? <a href="#" onclick="showSignup()">Sign up</a></p>
+                </div>
+            </div>
+        </div>
+
+      
+        <div id="signup" class="page">
+            <div class="login-container">
+                <div class="login-header">
+                    <div class="login-icon">
+                        <span class="wingding">✨</span>
+                    </div>
+                    <h1 class="login-title">Create Account</h1>
+                    <p class="login-subtitle">Join us to start tracking your grades</p>
+                </div>
+
+                <div class="login-form">
+                    <div class="input-group">
+                        <label>Full Name</label>
+                        <input type="text" id="signupName" placeholder="John Doe">
+                    </div>
+                    <div class="input-group">
+                        <label>Email Address</label>
+                        <input type="email" id="signupEmail" placeholder="your.email@example.com">
+                    </div>
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" id="signupPassword" placeholder="Create a password">
+                    </div>
+                    <button class="btn-primary" onclick="signupWithEmail()">Create Account</button>
+
+                    <div class="divider">
+                        <span>or continue with</span>
+                    </div>
+
+                    <button class="btn-google" onclick="loginWithGoogle()">
+                        <span class="google-icon">G</span>
+                        Sign up with Google
+                    </button>
+
+                    <p class="login-footer">Already have an account? <a href="#" onclick="showLogin()">Sign in</a></p>
+                </div>
+            </div>
+        </div>
+
+        
+        <div id="dashboard" class="page">
             <div class="profile-header">
                 <div class="profile-info">
                     <div class="avatar">
                         <span class="wingding">✓</span>
                     </div>
                     <div class="greeting-text">
-                        <h2>Hello, Student!</h2>
+                        <h2 id="userGreeting">Hello, Student!</h2>
                         <p id="dashDate"></p>
                     </div>
                 </div>
-                <div class="search-icon">
-                    <span class="wingding">🔍</span>
+                <div class="search-icon" onclick="logout()">
+                    <span class="wingding">🔓</span>
                 </div>
             </div>
 
@@ -35,7 +111,7 @@
                     <p>Track your grades and GWA</p>
                 </div>
                 <div class="banner-illustration">
-                    <span class="wingding">📚</span>
+                    <span class="wingding">📊</span>
                 </div>
             </div>
 
@@ -45,7 +121,7 @@
                     <div class="plan-card-label">Calculator</div>
                     <div class="plan-card-title">GWA Tracker</div>
                     <div class="plan-card-icon">
-                        <span class="wingding">📊</span>
+                        <span class="wingding">📐</span>
                     </div>
                 </div>
                 <div class="plan-card" onclick="navigateTo('grade')">
@@ -58,7 +134,7 @@
             </div>
         </div>
 
-        <!-- GWA Calculator Page -->
+       
         <div id="gwa" class="page">
             <div class="stats-header">
                 <div class="ring-container">
@@ -74,7 +150,7 @@
             <div class="subjects-section" id="subjectsList"></div>
         </div>
 
-        <!-- Grade Calculator Page -->
+      
         <div id="grade" class="page">
             <div class="percentage-display-card">
                 <div class="percentage-ring">
@@ -107,8 +183,8 @@
         </div>
     </div>
 
-    <!-- Bottom Navigation -->
-    <div class="bottom-nav">
+   
+    <div class="bottom-nav" id="bottomNav" style="display: none;">
         <div class="nav-item active" onclick="navigateTo('dashboard')">
             <div class="icon">
                 <span class="wingding">🏠</span>
@@ -117,7 +193,7 @@
         </div>
         <div class="nav-item" onclick="navigateTo('gwa')">
             <div class="icon">
-                <span class="wingding">📊</span>
+                <span class="wingding">📐</span>
             </div>
             <div class="label">GWA</div>
         </div>
@@ -131,30 +207,46 @@
 
     <script src="script.js"></script>
     <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyBlbnrJZ5UJy3wjM8Bnxyq0Vs3P27oBDzA",
-    authDomain: "gwakawa-98428.firebaseapp.com",
-    projectId: "gwakawa-98428",
-    storageBucket: "gwakawa-98428.firebasestorage.app",
-    messagingSenderId: "622489869959",
-    appId: "1:622489869959:web:538326d2e7678705552222",
-    measurementId: "G-SDN67JX2DB"
-  };
+        const firebaseConfig = {
+            apiKey: "AIzaSyBlbnrJZ5UJy3wjM8Bnxyq0Vs3P27oBDzA",
+            authDomain: "gwakawa-98428.firebaseapp.com",
+            projectId: "gwakawa-98428",
+            storageBucket: "gwakawa-98428.firebasestorage.app",
+            messagingSenderId: "622489869959",
+            appId: "1:622489869959:web:538326d2e7678705552222",
+            measurementId: "G-SDN67JX2DB"
+        };
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
 
-</script>
+        
+        window.firebaseAuth = auth;
+        window.googleProvider = provider;
+        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+        window.signInWithPopup = signInWithPopup;
+        window.signOutUser = signOut;
+
+        
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.currentUser = user;
+                document.getElementById('bottomNav').style.display = 'flex';
+                const name = user.displayName || user.email.split('@')[0];
+                document.getElementById('userGreeting').textContent = `Hello, ${name}!`;
+            } else {
+                window.currentUser = null;
+                document.getElementById('bottomNav').style.display = 'none';
+            }
+        });
+    </script>
 </body>
 
 </html>
