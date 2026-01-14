@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="bg-decoration"></div>
+
+    <div class="container">
+        <!-- Dashboard Page -->
+        <div id="dashboard" class="page active">
+            <div class="profile-header">
+                <div class="profile-info">
+                    <div class="avatar">
+                        <span class="wingding">✓</span>
+                    </div>
+                    <div class="greeting-text">
+                        <h2>Hello, Student!</h2>
+                        <p id="dashDate"></p>
+                    </div>
+                </div>
+                <div class="search-icon">
+                    <span class="wingding">🔍</span>
+                </div>
+            </div>
+
+            <div class="featured-banner">
+                <div class="banner-content">
+                    <h3>Academic Progress</h3>
+                    <p>Track your grades and GWA</p>
+                </div>
+                <div class="banner-illustration">
+                    <span class="wingding">📚</span>
+                </div>
+            </div>
+
+            <h3 class="section-title">Your Tools</h3>
+            <div class="plan-grid">
+                <div class="plan-card" onclick="navigateTo('gwa')">
+                    <div class="plan-card-label">Calculator</div>
+                    <div class="plan-card-title">GWA Tracker</div>
+                    <div class="plan-card-icon">
+                        <span class="wingding">📊</span>
+                    </div>
+                </div>
+                <div class="plan-card" onclick="navigateTo('grade')">
+                    <div class="plan-card-label">Calculator</div>
+                    <div class="plan-card-title">Grade Breakdown</div>
+                    <div class="plan-card-icon">
+                        <span class="wingding">🎯</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GWA Calculator Page -->
+        <div id="gwa" class="page">
+            <div class="stats-header">
+                <div class="ring-container">
+                    <svg width="280" height="280" id="gwaRing"></svg>
+                    <div class="ring-center">
+                        <div class="gwa-number" id="gwaNumber">0.00</div>
+                        <div class="gwa-label">your GWA score</div>
+                    </div>
+                    <div class="ring-icons" id="ringIcons"></div>
+                </div>
+            </div>
+
+            <div class="subjects-section" id="subjectsList"></div>
+        </div>
+
+        <!-- Grade Calculator Page -->
+        <div id="grade" class="page">
+            <div class="percentage-display-card">
+                <div class="percentage-ring">
+                    <svg width="320" height="320" id="percentageRing"></svg>
+                    <div class="percentage-center">
+                        <div class="percentage-number" id="percentageNum">0<span>%</span></div>
+                        <div class="percentage-label">Raw Score</div>
+                        <div class="grade-result" id="gradeNum">Grade: -</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="subject-select-card">
+                <label>Select Subject</label>
+                <div class="custom-select">
+                    <select id="gradeSubjectSelect" onchange="loadGradeComponents()">
+                        <option value="">Choose a subject...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="gradeComponentsContainer" style="display: none;">
+                <div id="componentsList"></div>
+
+                <div class="conversion-table">
+                    <h4>Grade Conversion</h4>
+                    <div id="conversionTable"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="navigateTo('dashboard')">
+            <div class="icon">
+                <span class="wingding">🏠</span>
+            </div>
+            <div class="label">Home</div>
+        </div>
+        <div class="nav-item" onclick="navigateTo('gwa')">
+            <div class="icon">
+                <span class="wingding">📊</span>
+            </div>
+            <div class="label">GWA</div>
+        </div>
+        <div class="nav-item" onclick="navigateTo('grade')">
+            <div class="icon">
+                <span class="wingding">🎯</span>
+            </div>
+            <div class="label">Grade</div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyBlbnrJZ5UJy3wjM8Bnxyq0Vs3P27oBDzA",
+    authDomain: "gwakawa-98428.firebaseapp.com",
+    projectId: "gwakawa-98428",
+    storageBucket: "gwakawa-98428.firebasestorage.app",
+    messagingSenderId: "622489869959",
+    appId: "1:622489869959:web:538326d2e7678705552222",
+    measurementId: "G-SDN67JX2DB"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
+
+</script>
+</body>
+
+</html>
