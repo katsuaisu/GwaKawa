@@ -207,12 +207,10 @@
 
     <script src="script.js"></script>
     <script type="module">
-       
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
-      
         const firebaseConfig = {
             apiKey: "AIzaSyBlbnrJZ5UJy3wjM8Bnxyq0Vs3P27oBDzA",
             authDomain: "gwakawa-98428.firebaseapp.com",
@@ -223,42 +221,40 @@
             measurementId: "G-SDN67JX2DB"
         };
 
-     
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
         const db = getFirestore(app);
 
-        
+        // FIX 1: Map the Firestore tools to the window object names used in script.js
         window.firebaseAuth = auth;
-        window.db = db; 
+        window.firebaseDb = db; // Matches window.firebaseDb in your script.js
         window.googleProvider = provider;
-
-        
         window.signInWithEmailAndPassword = signInWithEmailAndPassword;
         window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
         window.signInWithPopup = signInWithPopup;
         window.signOutUser = signOut;
 
-        
-        window.doc = doc;
-        window.setDoc = setDoc;
-        window.getDoc = getDoc;
+        // Bridging the missing Firestore functions
+        window.firestoreDoc = doc;
+        window.firestoreSetDoc = setDoc;
+        window.firestoreGetDoc = getDoc;
 
-        console.log("Firebase initialized. Firestore tools attached to window.");
-
-        // 5. Auth State Listener
-        onAuthStateChanged(auth, (user) => {
+        // FIX 2: Ensure data loads as soon as the Auth state is confirmed
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 window.currentUser = user;
                 document.getElementById('bottomNav').style.display = 'flex';
                 const name = user.displayName || user.email.split('@')[0];
-                const greeting = document.getElementById('userGreeting');
-                if (greeting) greeting.textContent = `Hello, ${name}!`;
+                document.getElementById('userGreeting').textContent = `Hello, ${name}!`;
+
+                // Explicitly trigger a cloud load when the user is detected
+                if (typeof window.loadUserData === "function") {
+                    await window.loadUserData();
+                }
             } else {
                 window.currentUser = null;
-                const bottomNav = document.getElementById('bottomNav');
-                if (bottomNav) bottomNav.style.display = 'none';
+                document.getElementById('bottomNav').style.display = 'none';
             }
         });
     </script>
