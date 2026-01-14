@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Academic Dashboard</title>
+    <title>GwaKawa by Rei</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -12,7 +12,7 @@
     <div class="bg-decoration"></div>
 
     <div class="container">
-       
+
         <div id="login" class="page active">
             <div class="login-container">
                 <div class="login-header">
@@ -48,7 +48,7 @@
             </div>
         </div>
 
-      
+
         <div id="signup" class="page">
             <div class="login-container">
                 <div class="login-header">
@@ -88,7 +88,7 @@
             </div>
         </div>
 
-        
+
         <div id="dashboard" class="page">
             <div class="profile-header">
                 <div class="profile-info">
@@ -134,7 +134,7 @@
             </div>
         </div>
 
-       
+
         <div id="gwa" class="page">
             <div class="stats-header">
                 <div class="ring-container">
@@ -150,7 +150,7 @@
             <div class="subjects-section" id="subjectsList"></div>
         </div>
 
-      
+
         <div id="grade" class="page">
             <div class="percentage-display-card">
                 <div class="percentage-ring">
@@ -183,7 +183,7 @@
         </div>
     </div>
 
-   
+
     <div class="bottom-nav" id="bottomNav" style="display: none;">
         <div class="nav-item active" onclick="navigateTo('dashboard')">
             <div class="icon">
@@ -226,7 +226,7 @@
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        
+
         window.firebaseAuth = auth;
         window.googleProvider = provider;
         window.signInWithEmailAndPassword = signInWithEmailAndPassword;
@@ -234,7 +234,7 @@
         window.signInWithPopup = signInWithPopup;
         window.signOutUser = signOut;
 
-        
+
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 window.currentUser = user;
